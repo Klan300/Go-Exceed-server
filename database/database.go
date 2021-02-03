@@ -13,7 +13,6 @@ import (
 
 func DatabaseConnect() ( context.Context, *mongo.Database)  {
 	client, err := mongo.NewClient(options.Client().ApplyURI(config.GoDotEnvVariable("DATABASEURI")))
-
 	if err != nil {
         log.Fatal(err)
 	}
