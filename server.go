@@ -19,6 +19,7 @@ func main() {
 		AllowOrigins: []string{"*"},
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
 	  }))
+	  
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 		Format:  "${time_rfc3339}: FROM ${remote_ip} ${method} ${uri} RETURN ${status}\n",
 		Skipper: middleware.DefaultSkipper,
