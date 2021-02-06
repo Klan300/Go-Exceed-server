@@ -22,8 +22,11 @@ func main() {
 	e.Use(middleware.Recover())
 
 	e.GET("/:studentId", handler.GetDataById)
+	e.GET("/twitter", handler.GetTweet)
+	e.POST("/twitter", handler.PostTweet)
 	e.PUT("/:studentId", handler.PutDataById)
 	e.PATCH("/:studentId", handler.PatchDataById)
+	
 
 	e.Logger.Fatal(e.Start(config.GoDotEnvVariable("PORT")))
 }
