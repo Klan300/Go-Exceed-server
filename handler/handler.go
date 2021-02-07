@@ -7,9 +7,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"go.mongodb.org/mongo-driver/bson"
-	
+
 	database "github.com/klan300/exceed17/database"
-	
 )
 
 type Student struct {
@@ -17,11 +16,6 @@ type Student struct {
 	Question string `json:"question"`
 	Answer   string `json:"answer"`
 }
-
-type answer struct {
-	Answer   string `json:"answer"`
-}
-
 
 func GetDataById(request echo.Context) error {
 
@@ -36,7 +30,7 @@ func GetDataById(request echo.Context) error {
 	err := collection.FindOne(ctx, bson.M{"id":id}).Decode(&students)
 
 	if err != nil {
-		return request.JSON(http.StatusInternalServerError, err)
+		return request.JSON(http.StatusNotFound, echo.NotFoundHandler)
 	}
 
 	return request.JSON(http.StatusOK, students)
@@ -52,43 +46,57 @@ func PutDataById(request echo.Context) error {
 	err :=  request.Bind(&students)
 
 	if err != nil {
-		return request.NoContent(http.StatusBadRequest)
+		return request.JSON(http.StatusBadRequest, echo.ErrBadRequest)
 	}
+
+	if students.Id != id {
+		return request.JSON(http.StatusBadRequest, echo.ErrBadRequest)
+	} 
 
 	ctx, db := database.DatabaseConnect()
 	collection := db.Collection("exceedFrontend")
 	defer db.Client().Disconnect(ctx)
 
-	status,err := collection.ReplaceOne(ctx, bson.M{"id":id}, students)
+	_ ,err  = collection.ReplaceOne(ctx, bson.M{"id":id}, students)
 
 	if err != nil {
 		return request.JSON(http.StatusInternalServerError, echo.ErrInternalServerError)
 	}
 
-	return request.JSON(http.StatusOK, status)
+	return request.JSON(http.StatusOK, students)
 }
 
 func PatchDataById(request echo.Context) error {
 
 	id := request.Param("studentId")
 
-	var ans answer
+	var students Student
 
-	err :=  request.Bind(&ans)
+	err :=  request.Bind(&students)
 
 	if err != nil {
-		return request.NoContent(http.StatusBadRequest)
+		return request.JSON(http.StatusBadRequest, echo.ErrBadRequest)
+	}
+
+	if students.Id != "" || students.Question != "" {
+		return request.JSON(http.StatusBadRequest, echo.ErrBadRequest)
 	}
 
 	ctx, db := database.DatabaseConnect()
 	collection := db.Collection("exceedFrontend")
 	defer db.Client().Disconnect(ctx)
 
-	status,err := collection.UpdateOne(ctx, bson.M{"id":id}, bson.D{{"$set", bson.D{{"answer", ans.Answer}}}})
+	_ , err = collection.UpdateOne(ctx, bson.M{"id":id}, bson.D{{"$set", bson.D{{"answer", students.Answer}}}})
 
 	if err != nil {
-		return request.JSON(http.StatusInternalServerError, echo.ErrInternalServerError)
+		return request.JSON(http.StatusNotFound, echo.NotFoundHandler)
 	}
 
-	return request.JSON(http.StatusOK, status)
+	err	= collection.FindOne(ctx, bson.M{"id":id}).Decode(&students)
+
+	if err != nil {
+		return request.JSON(http.StatusNotFound, echo.NotFoundHandler)
+	}
+
+	return request.JSON(http.StatusOK, students)
 }
