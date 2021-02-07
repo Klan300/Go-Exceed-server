@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/http"
 	// "encoding/json"
 
 	"github.com/labstack/echo/v4"
@@ -18,8 +19,9 @@ func main() {
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+		AllowMethods: []string{http.MethodGet, http.MethodHead, http.MethodPut, http.MethodPatch, http.MethodPost, http.MethodDelete},
 	  }))
-	  
+
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 		Format:  "${time_rfc3339}: FROM ${remote_ip} ${method} ${uri} RETURN ${status}\n",
 		Skipper: middleware.DefaultSkipper,
